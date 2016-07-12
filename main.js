@@ -147,7 +147,7 @@ Star = function(options) {
 };
 
 Planet = function(options){
-  var geom = new THREE.IcosahedronGeometry( options.radius, 1 );
+  var geom = new THREE.IcosahedronGeometry( options.radius, options.detail );
   geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
 
   var mat = new THREE.MeshPhongMaterial({
@@ -156,25 +156,12 @@ Planet = function(options){
     shading: THREE.FlatShading
   });
 
-
-  this.mesh = new THREE.Mesh(geom, mat);
-
-  this.mesh.position.set(options.coordinates.x, options.coordinates.y, options.coordinates.z);
-  this.mesh.receiveShadow = true;
-};
-
-Moon = function(options) {
-  var geom = new THREE.IcosahedronGeometry(options.radius, 0);  // MOON RADIUS SET HERE
-  geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
-
-  var mat = new THREE.MeshPhongMaterial({
-    color: Colors.orange,
-    transparent: false,
-    shading: THREE.FlatShading
-  });
-
   this.mesh = new THREE.Mesh(geom, mat);
   this.mesh.receiveShadow = true;
+  if (options.coordinates != null) {
+    this.mesh.position.set(options.coordinates.x, options.coordinates.y, options.coordinates.z);
+  }
+  console.log(this.mesh.position);
 };
 
 // 3D Models
@@ -198,7 +185,11 @@ function createStar(options) {
 }
 
 function createPlanet(options) {
+
   var container = new THREE.Object3D();
+  planet_pivot_containers.push (container);
+  container.position.set(options.parent.coordinates.x, options.parent.coordinates.y, options.parent.coordinates.z);
+  scene.add(container);
 
   // create a new planet
   var planet = new Planet(options);
@@ -206,8 +197,18 @@ function createPlanet(options) {
   // add this planet to the planets array
   planets.push(planet);
 
-  // Add the planet to the scene
-  scene.add(planet.mesh);
+  // Set the distance of the planet from the star at a random
+  // integer greater than 50 + 2x the size of the star but smaller than 4x the size of the star
+  // 300 is the default size for stars, then add 2x the radius so that there is some distance
+  // TODO: update to be dynamic for dynamic planet sizes
+  planet.mesh.position.y = 300 + getRandomInt((2*options.radius), (8*options.radius));
+
+  // Add the planet to the container, which is in the scene
+  var pivot = new THREE.Object3D();
+  pivot.rotation.z = 0;
+  container.add(pivot)
+  pivot.add(planet.mesh);
+  planet.pivot = pivot;
 }
 
 function createMoon(options){
@@ -218,9 +219,10 @@ function createMoon(options){
   // and allow it to pivot around a planet
   // The container's coordinates should match those of the parent planet - so that the moon orbits the appropriate planet
   container.position.set(options.parent.mesh.position.x, options.parent.mesh.position.y, options.parent.mesh.position.z);
-  scene.add( container );
 
-  var moon = new Moon(options);
+  options.parent.pivot.add(container);
+
+  var moon = new Planet(options);
   moons.push(moon);
   // Set the distance of the moon from the planet at a random
   // integer greater than 50 + 2x the size of the moon but smaller than 4x the size of the moon
@@ -262,6 +264,12 @@ function loop(){
     moon_pivot_containers[i].rotation.z += 0.01 / (i+1);
   }
 
+  // Iterate over the planet containers and rotate
+  num_planet_pivots = planet_pivot_containers.length;
+  for (var i = 0; i < num_planet_pivots; i++) {
+    planet_pivot_containers[i].rotation.z += 0.001 / (i+1);
+  }
+
   renderer.render(scene, camera);
 
   requestAnimationFrame(loop);
@@ -278,16 +286,27 @@ function init(event){
     if (!Sites.hasOwnProperty(key)) continue;
 
     var site = Sites[key];
-    site.radius = getRandomInt(300, 1000);
-    createStar({radius: site.radius, coordinates: site.coordinates, color: site.color});
+    site.radius = 300;//getRandomInt(300, 1000);
+    // Limited to only build one for now: TODO - remove
+    if (site = Sites['polygon']) {
+      createStar({radius: site.radius, coordinates: site.coordinates, color: site.color});
+    }
   }
 
-  createPlanet({radius: 50, coordinates: {y: 800, x: 0, z: 0}, color: Colors.blue});
-  createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue});
-  createMoon({radius: 10, parent: planets[0]});
-  createMoon({radius: 30, parent: planets[0]});
-  createMoon({radius: 20, parent: planets[0]});
-  createMoon({parent: planets[1]});
+
+  //createPlanet({radius: 50, coordinates: {y: 800, x: 0, z: 0}, color: Colors.blue, parent: Sites.polygon});
+  createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.polygon});
+  createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.polygon});
+  //createPlanet({radius: 50, color: Colors.blue, detail: 1, parent: Sites.polygon});
+  //createPlanet({radius: 30, color: Colors.red, detail: 1, parent: Sites.polygon});
+
+
+  createMoon({radius: 10, color: Colors.cream, detail: 0, parent: planets[0]});
+  createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[0]});
+  createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[0]});
+  createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[1]});
+  //createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[1]});
+
 
   loop();
 }
