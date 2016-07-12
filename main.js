@@ -121,20 +121,23 @@ Star = function(options) {
 
   this.mesh = new THREE.Mesh(geom, mat);
   this.mesh.receiveShadow = false;
+  this.mesh.position.y = options.coordinates.y;
 }
 
 
 Planet = function(options){
-  var geom = new THREE.IcosahedronGeometry( 50, 1 ); // PLANET RADIUS SET HERE
+  var geom = new THREE.IcosahedronGeometry( options.radius, 1 );
   geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
 
   var mat = new THREE.MeshPhongMaterial({
-    color: Colors.blue, // PLANET COLOR SET HERE
+    color: options.color,
     transparent: false,
     shading: THREE.FlatShading
   });
 
+
   this.mesh = new THREE.Mesh(geom, mat);
+  this.mesh.position.y = options.coordinates.y;
   this.mesh.receiveShadow = true;
 }
 
@@ -156,40 +159,39 @@ Moon = function(options) {
 var star, planet, moon, container;
 var star_containers = [], moon_containers = [], planet_containers = [];
 
-function createStar() {
-  star = new Star();
-  star.mesh.position.y = -1800;
+function createStar(options) {
+  star = new Star(options);
   scene.add(star.mesh)
 }
 
-function createPlanet(){
-  planet = new Planet();
-  planet.mesh.position.y = 0;
+function createPlanet(options){
+  planet = new Planet(options);
   scene.add(planet.mesh);
 }
 
-function createMoon(){
+function createMoon(options){
   container = new THREE.Object3D();
 
   // When creating a moon, add a container that will hold it
   // and allow it to pivot around a planet
   // The container's coordinates should match those of the parent planet
   scene.add( container );
-  container.position = {x: 0, y: 0, z: 0};
+  container.position = options.parent.mesh.position
 
   var radius = 10;
+
   moon = new Moon({radius: 10});
+
   // Set the distance of the moon from the planet at a random
   // integer greater than 50 + 2x the size of the moon but smaller than 4x the size of the moon
   // 50 is the default size for planets, then add 2x the radius so that there is some distance
   // TODO: update to be dynamic for dynamic planet sizes
   moon.mesh.position.y = 50 + getRandomInt((2*radius), (8*radius));
-  console.log(moon.mesh.position.y);
 
-  var pivot1 = new THREE.Object3D();
-  pivot1.rotation.z = 0;
-  container.add(pivot1)
-  pivot1.add( moon.mesh );
+  var pivot = new THREE.Object3D();
+  pivot.rotation.z = 0;
+  container.add(pivot)
+  pivot.add( moon.mesh );
 }
 
 function loop(){
@@ -202,13 +204,12 @@ function loop(){
   requestAnimationFrame(loop);
 }
 
-
 function init(event){
   createScene();
   createLights();
-  createStar();
-  createMoon();
-  createPlanet();
+  createStar({coordinates: {y: -1800, x: 0, z: 0}});
+  createPlanet({radius: 50, coordinates: {y: 20, x: 0, z: 0}, color: Colors.blue});
+  createMoon({parent: planet});
   loop();
 }
 
