@@ -110,11 +110,11 @@ function createLights() {
 }
 
 Star = function(options) {
-  var geom = new THREE.IcosahedronGeometry ( 1000, 2 ); // Star radius goes here
+  var geom = new THREE.IcosahedronGeometry ( options.radius, 2 ); // Star radius goes here
   geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
 
   var mat = new THREE.MeshPhongMaterial({
-    color: Colors.red, // STAR COLOR SET HERE
+    color: options.color,
     transparent: false,
     shading: THREE.FlatShading
   });
@@ -122,8 +122,7 @@ Star = function(options) {
   this.mesh = new THREE.Mesh(geom, mat);
   this.mesh.receiveShadow = false;
   this.mesh.position.y = options.coordinates.y;
-}
-
+};
 
 Planet = function(options){
   var geom = new THREE.IcosahedronGeometry( options.radius, 1 );
@@ -139,7 +138,7 @@ Planet = function(options){
   this.mesh = new THREE.Mesh(geom, mat);
   this.mesh.position.y = options.coordinates.y;
   this.mesh.receiveShadow = true;
-}
+};
 
 Moon = function(options) {
   var geom = new THREE.IcosahedronGeometry(options.radius, 0);  // MOON RADIUS SET HERE
@@ -153,19 +152,39 @@ Moon = function(options) {
 
   this.mesh = new THREE.Mesh(geom, mat);
   this.mesh.receiveShadow = true;
-}
+};
 
 // 3D Models
-var star, planet, moon, container;
+var container;
+var stars = [], planets = [], moons = [];
+
+// Container containers!
+// Store all the containers into arrays
+// in order to iterate over them and set up placements and orbits
 var star_containers = [], moon_containers = [], planet_containers = [];
 
+// Creator Methods:
+// These instantiate the object and then do any post-creation
+// manipulation and add the object to the scene
 function createStar(options) {
-  star = new Star(options);
+  // Create new star
+  var star = new Star(options);
+
+  // Add this star to the stars array
+  stars.push(star);
+
+  // Add this star to the scene
   scene.add(star.mesh)
 }
 
-function createPlanet(options){
-  planet = new Planet(options);
+function createPlanet(options) {
+  // create a new planet
+  var planet = new Planet(options);
+
+  // add this planet to the planets array
+  planets.push(planet);
+
+  // Add the planet to the scene
   scene.add(planet.mesh);
 }
 
@@ -180,8 +199,8 @@ function createMoon(options){
 
   var radius = 10;
 
-  moon = new Moon({radius: 10});
-
+  var moon = new Moon({radius: 10});
+  moons.push(moon);
   // Set the distance of the moon from the planet at a random
   // integer greater than 50 + 2x the size of the moon but smaller than 4x the size of the moon
   // 50 is the default size for planets, then add 2x the radius so that there is some distance
@@ -194,29 +213,51 @@ function createMoon(options){
   pivot.add( moon.mesh );
 }
 
+
+// Main render loop - updates every animation frame tick
 function loop(){
-  planet.mesh.rotation.z += 0.005;
-  star.mesh.rotation.z += 0.002;
-  moon.mesh.rotation.z += .003;
+  // Iterate over stars and rotate them
+  numplanets = planets.length;
+  for (var i = 0; i < numplanets; i++) {
+    planets[i].mesh.rotation.z += 0.005;
+  }
+
+  // Iterate over stars and rotate them
+  numstars = stars.length;
+  for (var i = 0; i < numstars; i++) {
+    stars[i].mesh.rotation.z += 0.002;
+  }
+
+  // Iterate over the moons and rotate
+  nummoons = moons.length;
+  for (var i = 0; i < nummoons; i++) {
+    moons[i].mesh.rotation.z += 0.003;
+  }
+
   container.rotation.z += 0.01;
+
   renderer.render(scene, camera);
 
   requestAnimationFrame(loop);
 }
 
+// Initial render chain
 function init(event){
   createScene();
   createLights();
-  createStar({coordinates: {y: -1800, x: 0, z: 0}});
+
+  // TODO: Loop over data and setup stars/planets/moons for everything
+  createStar({radius: 1000, coordinates: {y: -1800, x: 0, z: 0}, color: Colors.red});
   createPlanet({radius: 50, coordinates: {y: 20, x: 0, z: 0}, color: Colors.blue});
-  createMoon({parent: planet});
+  createMoon({parent: planets[0]});
+
   loop();
 }
 
+// On load fire the init
 window.addEventListener('load', init, false);
 
 // UTILS
-
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
