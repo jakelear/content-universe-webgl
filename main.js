@@ -8,8 +8,8 @@ var Config = {
   selector: 'visualization',
   fov: 60,
   near_plane: 1,
-  far_plane: 200000,
-  max_star_size: 15000
+  far_plane: 150000,
+  max_star_size: 5000
 };
 
 var Colors = {
@@ -32,24 +32,31 @@ var Colors = {
 };
 
 var Sites = {
-  polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: -20000, y: -1300, z: 1000}},
-  vox:              {name: 'Vox', radius: 0, color: Colors.sites.vox,  coordinates: {x: 10000, y: 5000, z: 8000}},
-  recode:           {name: 'Recode', radius: 0, color: Colors.sites.recode,  coordinates: {x: -10000, y: -5000, z: 19872}},
-  verge:            {name: 'The Verge', radius: 0, color: Colors.sites.verge,  coordinates: {x: -20000, y: -14000, z: -10}},
-  sbnation:         {name: 'SB Nation', radius: 0, color: Colors.sites.sbnation,  coordinates: {x: 45000, y: 12000, z: 650}},
-  curbed:           {name: 'Curbed', radius: 0, color: Colors.sites.curbed,  coordinates: {x: 10000, y: -3000, z: 12345}},
-  eater:            {name: 'Eater', radius: 0, color: Colors.sites.eater,  coordinates: {x: -30000, y: 680, z: -11234}},
-  racked:           {name: 'Racked', radius: 0, color: Colors.sites.racked,  coordinates: {x: 20000, y: -12012, z: -2310}},
   voxcreative:      {name: 'Vox Creative', radius: 0, color: Colors.sites.voxcreative,   coordinates: {x: 0, y: 0, z: 0}},
+  racked:           {name: 'Racked', radius: 0, color: Colors.sites.racked,  coordinates: {x: 2000, y: -1012, z: 2310}},
+  recode:           {name: 'Recode', radius: 0, color: Colors.sites.recode,  coordinates: {x: -1000, y: -5000, z: 19872}},
+  curbed:           {name: 'Curbed', radius: 0, color: Colors.sites.curbed,  coordinates: {x: 10000, y: -3000, z: 32345}},
+  eater:            {name: 'Eater', radius: 0, color: Colors.sites.eater,  coordinates: {x: -30000, y: 680, z: -11234}},
+  polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: -20000, y: -21300, z: -1000}},
+  vox:              {name: 'Vox', radius: 0, color: Colors.sites.vox,  coordinates: {x: 10000, y: 5000, z: 48000}},
+  verge:            {name: 'The Verge', radius: 0, color: Colors.sites.verge,  coordinates: {x: -20000, y: -14000, z: -10}},
+  sbnation:         {name: 'SB Nation', radius: 0, color: Colors.sites.sbnation,  coordinates: {x: 5000, y: 22000, z: 650}}
 };
 
 // THREEJS RELATED VARIABLES
+
+var radius = 6371;
+var tilt = 0.41;
+var rotationSpeed = 0.02;
 
 var scene,
     camera,
     aspectRatio,
     renderer,
+    controls,
+    clock,
     container;
+var sceneObjects = [];
 
 //SCREEN & MOUSE VARIABLES
 
@@ -67,25 +74,16 @@ function createScene() {
   scene = new THREE.Scene();
   aspectRatio = WIDTH / HEIGHT;
 
-  camera = new THREE.PerspectiveCamera(
-    Config.fov,
-    aspectRatio,
-    Config.near_plane,
-    Config.far_plane
-  );
+  camera = new THREE.PerspectiveCamera( Config.fov, aspectRatio, Config.near_plane, Config.far_plane );
+  camera.position.z = radius * 5;
 
   //scene.fog = new THREE.Fog(Colors.cream, 10000,55000);
+  scene.fog = new THREE.FogExp2( 0x000000, 0.00000025 );
   camera.position.x = 0;
-  camera.position.z = 200;
+  camera.position.z = 20;
   camera.position.y = 0;
 
-
-  // controls
-  controls = new THREE.OrbitControls( camera );
-  controls.minDistance = 200;
-  controls.maxDistance = Config.far_plane / 2;
-
-  // Set up WebGL Renderer
+   // Set up WebGL Renderer
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 
   // Width and Height match size of screen
@@ -97,6 +95,16 @@ function createScene() {
   // Select and Append Container
   container = document.getElementById(Config.selector);
   container.appendChild(renderer.domElement);
+
+  // controls
+  controls = new THREE.FlyControls( camera );
+  controls.movementSpeed = 500;
+  controls.domElement = container;
+  controls.rollSpeed = Math.PI / 24;
+  controls.autoForward = false;
+  controls.dragToLook = false;
+
+
 
   window.addEventListener('resize', handleWindowResize, false);
 }
@@ -181,7 +189,8 @@ function createStar(options) {
   stars.push(star);
 
   // Add this star to the scene
-  scene.add(star.mesh)
+  scene.add(star.mesh);
+  sceneObjects.push(star.mesh);
 }
 
 function createPlanet(options) {
@@ -208,6 +217,7 @@ function createPlanet(options) {
   pivot.rotation.z = 0;
   container.add(pivot)
   pivot.add(planet.mesh);
+  sceneObjects.push(planet.mesh);
   planet.pivot = pivot;
 }
 
@@ -239,6 +249,8 @@ function createMoon(options){
 
 // Main render loop - updates every animation frame tick
 function loop(){
+  var delta = clock.getDelta();
+  controls.update(delta);
 
   // Iterate over stars and rotate them
   numplanets = planets.length;
@@ -277,6 +289,7 @@ function loop(){
 
 // Initial render chain
 function init(event){
+  clock = new THREE.Clock();
   createScene();
   createLights();
 
@@ -326,6 +339,7 @@ function init(event){
 
 // On load fire the init
 window.addEventListener('load', init, false);
+//window.document.addEventListener('click', onDocumentMouseDown, false);
 
 // UTILS
 function getRandomInt(min, max) {
