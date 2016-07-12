@@ -31,15 +31,15 @@ var Colors = {
 };
 
 var Sites = {
-  polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: 0, y: 0, z: 0}},
-  vox:              {name: 'Vox', radius: 0, color: Colors.sites.vox,  coordinates: {x: 0, y: 0, z: 0}},
-  recode:           {name: 'Recode', radius: 0, color: Colors.sites.recode,  coordinates: {x: 0, y: 0, z: 0}},
-  verge:            {name: 'The Verge', radius: 0, color: Colors.sites.verge,  coordinates: {x: 0, y: 0, z: 0}},
-  sbnation:         {name: 'SB Nation', radius: 0, color: Colors.sites.sbnation,  coordinates: {x: 0, y: 0, z: 0}},
-  curbed:           {name: 'Curbed', radius: 0, color: Colors.sites.curbed,  coordinates: {x: 0, y: 0, z: 0}},
-  eater:            {name: 'Eater', radius: 0, color: Colors.sites.eater,  coordinates: {x: 0, y: 0, z: 0}},
-  racked:           {name: 'Racked', radius: 0, color: Colors.sites.racked,  coordinates: {x: 0, y: 0, z: 0}},
-  voxcreative:      {name: 'Vox Creative', radius: 0, color: Colors.sites.voxcreative,  coordinates: {x: 0, y: 0, z: 0}}
+  polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: 0, y: 0, z: -540}},
+  vox:              {name: 'Vox', radius: 0, color: Colors.sites.vox,  coordinates: {x: 10000, y: 5000, z: 8000}},
+  recode:           {name: 'Recode', radius: 0, color: Colors.sites.recode,  coordinates: {x: -10000, y: -5000, z: 19872}},
+  verge:            {name: 'The Verge', radius: 0, color: Colors.sites.verge,  coordinates: {x: -20000, y: -14000, z: -10}},
+  sbnation:         {name: 'SB Nation', radius: 0, color: Colors.sites.sbnation,  coordinates: {x: 20000, y: 12000, z: 650}},
+  curbed:           {name: 'Curbed', radius: 0, color: Colors.sites.curbed,  coordinates: {x: 10000, y: -3000, z: 12345}},
+  eater:            {name: 'Eater', radius: 0, color: Colors.sites.eater,  coordinates: {x: -10000, y: 680, z: -11234}},
+  racked:           {name: 'Racked', radius: 0, color: Colors.sites.racked,  coordinates: {x: 20000, y: 12012, z: -2310}},
+  voxcreative:      {name: 'Vox Creative', radius: 0, color: Colors.sites.voxcreative,  coordinates: {x: -20000, y: -1300, z: 1000}}
 };
 
 // THREEJS RELATED VARIABLES
@@ -267,7 +267,7 @@ function loop(){
   // Iterate over the planet containers and rotate
   num_planet_pivots = planet_pivot_containers.length;
   for (var i = 0; i < num_planet_pivots; i++) {
-    planet_pivot_containers[i].rotation.z += 0.001 / (i+1);
+    planet_pivot_containers[i].rotation.z += 0.005 / (i+1);
   }
 
   renderer.render(scene, camera);
@@ -288,24 +288,22 @@ function init(event){
     var site = Sites[key];
     site.radius = 300;//getRandomInt(300, 1000);
     // Limited to only build one for now: TODO - remove
-    if (site = Sites['polygon']) {
-      createStar({radius: site.radius, coordinates: site.coordinates, color: site.color});
-    }
+    //if (site = Sites['polygon']) {
+      //createStar({radius: site.radius, coordinates: site.coordinates, color: site.color});
+    //}
+    createStar({radius: site.radius, coordinates: site.coordinates, color: site.color});
   }
 
-
-  //createPlanet({radius: 50, coordinates: {y: 800, x: 0, z: 0}, color: Colors.blue, parent: Sites.polygon});
   createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.polygon});
   createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.polygon});
-  //createPlanet({radius: 50, color: Colors.blue, detail: 1, parent: Sites.polygon});
-  //createPlanet({radius: 30, color: Colors.red, detail: 1, parent: Sites.polygon});
-
+  createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.recode});
 
   createMoon({radius: 10, color: Colors.cream, detail: 0, parent: planets[0]});
   createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[0]});
   createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[0]});
   createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[1]});
-  //createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[1]});
+  createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[1]});
+
 
 
   loop();
