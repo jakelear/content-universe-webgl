@@ -121,7 +121,7 @@ Star = function(options) {
 
   this.mesh = new THREE.Mesh(geom, mat);
   this.mesh.receiveShadow = false;
-  this.mesh.position.y = options.coordinates.y;
+  this.mesh.position.set(options.coordinates.x, options.coordinates.y, options.coordinates.z);
 };
 
 Planet = function(options){
@@ -136,7 +136,8 @@ Planet = function(options){
 
 
   this.mesh = new THREE.Mesh(geom, mat);
-  this.mesh.position.y = options.coordinates.y;
+
+  this.mesh.position.set(options.coordinates.x, options.coordinates.y, options.coordinates.z);
   this.mesh.receiveShadow = true;
 };
 
@@ -155,8 +156,7 @@ Moon = function(options) {
 };
 
 // 3D Models
-var container;
-var stars = [], planets = [], moons = [];
+var pivot_containers = [], stars = [], planets = [], moons = [];
 
 // Container containers!
 // Store all the containers into arrays
@@ -190,12 +190,15 @@ function createPlanet(options) {
 
 function createMoon(options){
   container = new THREE.Object3D();
+  pivot_containers.push (container);
 
   // When creating a moon, add a container that will hold it
   // and allow it to pivot around a planet
   // The container's coordinates should match those of the parent planet
   scene.add( container );
   container.position = options.parent.mesh.position
+  //console.log(options.parent.mesh.position)
+  //container.position.set(options.parent.mesh.position);
 
   var radius = 10;
 
@@ -234,7 +237,11 @@ function loop(){
     moons[i].mesh.rotation.z += 0.003;
   }
 
-  container.rotation.z += 0.01;
+  // Iterate over the moons and rotate
+  numpivots = pivot_containers.length;
+  for (var i = 0; i < numpivots; i++) {
+    pivot_containers[i].rotation.z += 0.01;
+  }
 
   renderer.render(scene, camera);
 
@@ -249,7 +256,9 @@ function init(event){
   // TODO: Loop over data and setup stars/planets/moons for everything
   createStar({radius: 1000, coordinates: {y: -1800, x: 0, z: 0}, color: Colors.red});
   createPlanet({radius: 50, coordinates: {y: 20, x: 0, z: 0}, color: Colors.blue});
+  createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.orange});
   createMoon({parent: planets[0]});
+  createMoon({parent: planets[1]});
 
   loop();
 }
