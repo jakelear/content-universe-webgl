@@ -31,14 +31,14 @@ var Colors = {
 };
 
 var Sites = {
-  polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: 0, y: 0, z: -540}},
+  polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: 4100, y: 0, z: -540}},
   vox:              {name: 'Vox', radius: 0, color: Colors.sites.vox,  coordinates: {x: 10000, y: 5000, z: 8000}},
   recode:           {name: 'Recode', radius: 0, color: Colors.sites.recode,  coordinates: {x: -10000, y: -5000, z: 19872}},
   verge:            {name: 'The Verge', radius: 0, color: Colors.sites.verge,  coordinates: {x: -20000, y: -14000, z: -10}},
   sbnation:         {name: 'SB Nation', radius: 0, color: Colors.sites.sbnation,  coordinates: {x: 20000, y: 12000, z: 650}},
   curbed:           {name: 'Curbed', radius: 0, color: Colors.sites.curbed,  coordinates: {x: 10000, y: -3000, z: 12345}},
   eater:            {name: 'Eater', radius: 0, color: Colors.sites.eater,  coordinates: {x: -10000, y: 680, z: -11234}},
-  racked:           {name: 'Racked', radius: 0, color: Colors.sites.racked,  coordinates: {x: 20000, y: 12012, z: -2310}},
+  racked:           {name: 'Racked', radius: 0, color: Colors.sites.racked,  coordinates: {x: 20000, y: -12012, z: -2310}},
   voxcreative:      {name: 'Vox Creative', radius: 0, color: Colors.sites.voxcreative,  coordinates: {x: -20000, y: -1300, z: 1000}}
 };
 
@@ -73,9 +73,9 @@ function createScene() {
     Config.far_plane
   );
 
-  //scene.fog = new THREE.Fog(Colors.cream, 100,950);
+  //scene.fog = new THREE.Fog(Colors.cream, 10000,55000);
   camera.position.x = 0;
-  camera.position.z = 200;
+  camera.position.z = 50000;
   camera.position.y = 0;
 
 
@@ -261,7 +261,7 @@ function loop(){
   // Iterate over the moons and rotate
   num_moon_pivots = moon_pivot_containers.length;
   for (var i = 0; i < num_moon_pivots; i++) {
-    moon_pivot_containers[i].rotation.z += 0.01 / (i+1);
+    moon_pivot_containers[i].rotation.z += 0.005 / (i+1);
   }
 
   // Iterate over the planet containers and rotate
@@ -320,4 +320,507 @@ function getRandomInt(min, max) {
 function getRandom(min, max) {
   return Math.random() * (max - min) + min;
 }
+
+
+// Dataset
+
+var data = {
+  sites: {
+    polygon: {
+      pageviews: 12610292,
+      stories: [
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        }
+      ]
+    },
+    vox: {
+      pageviews: 18549139,
+      stories: [
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        }
+      ]
+    },
+    recode: {
+      pageviews: 1460330,
+      stories: [
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        }
+      ]
+    },
+    verge: {
+      pageviews: 21103987,
+      stories: [
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        }
+      ]
+    },
+    sbnation: {
+      pageviews: 102817237,
+      stories: [
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        }
+      ]
+    },
+    curbed: {
+      pageviews: 4183807,
+      stories: [
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        }
+      ]
+    },
+    eater: {
+      pageviews: 7101163,
+      stories: [
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        }
+      ]
+    },
+    racked: {
+      pageviews: 1191117,
+      stories: [
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        }
+      ]
+    },
+    voxcreative: {
+      pageviews: 109720,
+      stories: [
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        },
+        {
+          title:
+          image:
+          author:
+          pageviews:
+          social_posts: {
+            {platform: twitter, engagement: 0.03, title: ''},
+            {platform: facebook, engagement: 0.11, title: ''}
+          }
+        }
+      ]
+    }
+  }
+};
 
