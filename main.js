@@ -289,41 +289,37 @@ function init(event){
     site_sizes.push(site.pageviews);
   }
 
+  // Discover the max site size and create a ratio
+  // to normalize the star sizes
   var max_site_size = Math.max.apply(Math, site_sizes);
   var ratio = max_site_size / Config.max_star_size;
 
+  // Loop over data.sites and set the sizes to the normalized values
    for (var key in data.sites) {
     var site = data.sites[key];
     site.size = Math.round(site.pageviews / ratio);
   }
 
-  // Loop over sites and place the stars & each system container
+  // Loop over sites and set the site radius to the correct normalized size
+  // and then create the stars
   for (var key in Sites) {
     if (!Sites.hasOwnProperty(key)) continue;
 
     var site = Sites[key];
-    site.radius = data.sites[key].size;//getRandomInt(300, 1000);
-    // Limited to only build one for now: TODO - remove
-    //if (site = Sites['polygon']) {
-      //createStar({radius: site.radius, coordinates: site.coordinates, color: site.color});
-    //}
-    //site.radius = data.sites[key].pageviews;
-    console.log(site.radius);
+    site.radius = data.sites[key].size;
+
+    // create star for each site
     createStar({radius: site.radius, coordinates: site.coordinates, color: site.color});
   }
 
-
   createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.polygon});
   createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.polygon});
-  //createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.recode});
 
   createMoon({radius: 10, color: Colors.cream, detail: 0, parent: planets[0]});
   createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[0]});
   createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[0]});
   createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[1]});
   createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[1]});
-
-
 
   loop();
 }
