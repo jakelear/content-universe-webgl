@@ -198,17 +198,13 @@ function createMoon(options){
   container.position.set(options.parent.mesh.position.x, options.parent.mesh.position.y, options.parent.mesh.position.z);
   scene.add( container );
 
-
-
-  var radius = 10;
-
-  var moon = new Moon({radius: 10});
+  var moon = new Moon(options);
   moons.push(moon);
   // Set the distance of the moon from the planet at a random
   // integer greater than 50 + 2x the size of the moon but smaller than 4x the size of the moon
   // 50 is the default size for planets, then add 2x the radius so that there is some distance
   // TODO: update to be dynamic for dynamic planet sizes
-  moon.mesh.position.y = 50 + getRandomInt((2*radius), (8*radius));
+  moon.mesh.position.y = 50 + getRandomInt((2*options.radius), (8*options.radius));
 
   var pivot = new THREE.Object3D();
   pivot.rotation.z = 0;
@@ -240,7 +236,8 @@ function loop(){
   // Iterate over the moons and rotate
   numpivots = pivot_containers.length;
   for (var i = 0; i < numpivots; i++) {
-    pivot_containers[i].rotation.z += 0.01;
+    //console.log(0.003 * ((i+2)*3));
+    pivot_containers[i].rotation.z += 0.01 / (i+1);
   }
 
   renderer.render(scene, camera);
@@ -257,7 +254,9 @@ function init(event){
   createStar({radius: 1000, coordinates: {y: -1800, x: 0, z: 0}, color: Colors.red});
   createPlanet({radius: 50, coordinates: {y: 800, x: 0, z: 0}, color: Colors.blue});
   createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.orange});
-  createMoon({parent: planets[0]});
+  createMoon({radius: 10, parent: planets[0]});
+  createMoon({radius: 30, parent: planets[0]});
+  createMoon({radius: 20, parent: planets[0]});
   createMoon({parent: planets[1]});
 
   loop();
@@ -268,5 +267,10 @@ window.addEventListener('load', init, false);
 
 // UTILS
 function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+function getRandom(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
