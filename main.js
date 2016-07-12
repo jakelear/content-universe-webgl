@@ -8,7 +8,7 @@ var Config = {
   selector: 'visualization',
   fov: 60,
   near_plane: 1,
-  far_plane: 20000
+  far_plane: 200000
 };
 
 var Colors = {
@@ -16,7 +16,30 @@ var Colors = {
   blue: '#8dbeb2',
   cream: '#f2ebbe',
   orange: '#f3b560',
-  red: '#f06361'
+  red: '#f06361',
+  sites: {
+    polygon: '#ff0052',
+    vox: '#f1e301',
+    recode: '#f13901',
+    verge: '#ff800f',
+    sbnation: '#db0404',
+    curbed: '#285986',
+    eater: '#ff370f',
+    racked: '#ffa289',
+    voxcreative: '#8b4af7'
+  }
+};
+
+var Sites = {
+  polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: 0, y: 0, z: 0}},
+  vox:              {name: 'Vox', radius: 0, color: Colors.sites.vox,  coordinates: {x: 0, y: 0, z: 0}},
+  recode:           {name: 'Recode', radius: 0, color: Colors.sites.recode,  coordinates: {x: 0, y: 0, z: 0}},
+  verge:            {name: 'The Verge', radius: 0, color: Colors.sites.verge,  coordinates: {x: 0, y: 0, z: 0}},
+  sbnation:         {name: 'SB Nation', radius: 0, color: Colors.sites.sbnation,  coordinates: {x: 0, y: 0, z: 0}},
+  curbed:           {name: 'Curbed', radius: 0, color: Colors.sites.curbed,  coordinates: {x: 0, y: 0, z: 0}},
+  eater:            {name: 'Eater', radius: 0, color: Colors.sites.eater,  coordinates: {x: 0, y: 0, z: 0}},
+  racked:           {name: 'Racked', radius: 0, color: Colors.sites.racked,  coordinates: {x: 0, y: 0, z: 0}},
+  voxcreative:      {name: 'Vox Creative', radius: 0, color: Colors.sites.voxcreative,  coordinates: {x: 0, y: 0, z: 0}}
 };
 
 // THREEJS RELATED VARIABLES
@@ -59,7 +82,7 @@ function createScene() {
   // controls
   controls = new THREE.OrbitControls( camera );
   controls.minDistance = 200;
-  controls.maxDistance = 5000;
+  controls.maxDistance = 50000;
 
   // Set up WebGL Renderer
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -106,11 +129,10 @@ function createLights() {
 
   scene.add(hemisphereLight);
   scene.add(shadowLight);
-
 }
 
 Star = function(options) {
-  var geom = new THREE.IcosahedronGeometry ( options.radius, 2 ); // Star radius goes here
+  var geom = new THREE.IcosahedronGeometry ( options.radius, 1 ); // Star radius goes here
   geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2));
 
   var mat = new THREE.MeshPhongMaterial({
@@ -156,12 +178,10 @@ Moon = function(options) {
 };
 
 // 3D Models
-var pivot_containers = [], stars = [], planets = [], moons = [];
+var stars = [], planets = [], moons = [];
 
-// Container containers!
-// Store all the containers into arrays
-// in order to iterate over them and set up placements and orbits
-var star_containers = [], moon_containers = [], planet_containers = [];
+// Orbital containers
+var moon_pivot_containers = [], planet_pivot_containers = [];
 
 // Creator Methods:
 // These instantiate the object and then do any post-creation
@@ -178,6 +198,8 @@ function createStar(options) {
 }
 
 function createPlanet(options) {
+  var container = new THREE.Object3D();
+
   // create a new planet
   var planet = new Planet(options);
 
@@ -189,8 +211,8 @@ function createPlanet(options) {
 }
 
 function createMoon(options){
-  container = new THREE.Object3D();
-  pivot_containers.push (container);
+  var container = new THREE.Object3D();
+  moon_pivot_containers.push (container);
 
   // When creating a moon, add a container that will hold it
   // and allow it to pivot around a planet
@@ -215,6 +237,7 @@ function createMoon(options){
 
 // Main render loop - updates every animation frame tick
 function loop(){
+
   // Iterate over stars and rotate them
   numplanets = planets.length;
   for (var i = 0; i < numplanets; i++) {
@@ -234,10 +257,9 @@ function loop(){
   }
 
   // Iterate over the moons and rotate
-  numpivots = pivot_containers.length;
-  for (var i = 0; i < numpivots; i++) {
-    //console.log(0.003 * ((i+2)*3));
-    pivot_containers[i].rotation.z += 0.01 / (i+1);
+  num_moon_pivots = moon_pivot_containers.length;
+  for (var i = 0; i < num_moon_pivots; i++) {
+    moon_pivot_containers[i].rotation.z += 0.01 / (i+1);
   }
 
   renderer.render(scene, camera);
@@ -250,10 +272,18 @@ function init(event){
   createScene();
   createLights();
 
-  // TODO: Loop over data and setup stars/planets/moons for everything
-  createStar({radius: 1000, coordinates: {y: -1800, x: 0, z: 0}, color: Colors.red});
+
+  // Loop over sites and place the stars & each system container
+  for (var key in Sites) {
+    if (!Sites.hasOwnProperty(key)) continue;
+
+    var site = Sites[key];
+    site.radius = getRandomInt(300, 1000);
+    createStar({radius: site.radius, coordinates: site.coordinates, color: site.color});
+  }
+
   createPlanet({radius: 50, coordinates: {y: 800, x: 0, z: 0}, color: Colors.blue});
-  createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.orange});
+  createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue});
   createMoon({radius: 10, parent: planets[0]});
   createMoon({radius: 30, parent: planets[0]});
   createMoon({radius: 20, parent: planets[0]});
