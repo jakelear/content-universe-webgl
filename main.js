@@ -76,7 +76,7 @@ function createScene() {
 
   //scene.fog = new THREE.Fog(Colors.cream, 10000,55000);
   camera.position.x = 0;
-  camera.position.z = 50000;
+  camera.position.z = 200;
   camera.position.y = 0;
 
 
