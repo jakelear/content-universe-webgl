@@ -194,11 +194,11 @@ function createMoon(options){
 
   // When creating a moon, add a container that will hold it
   // and allow it to pivot around a planet
-  // The container's coordinates should match those of the parent planet
+  // The container's coordinates should match those of the parent planet - so that the moon orbits the appropriate planet
+  container.position.set(options.parent.mesh.position.x, options.parent.mesh.position.y, options.parent.mesh.position.z);
   scene.add( container );
-  container.position = options.parent.mesh.position
-  //console.log(options.parent.mesh.position)
-  //container.position.set(options.parent.mesh.position);
+
+
 
   var radius = 10;
 
@@ -255,7 +255,7 @@ function init(event){
 
   // TODO: Loop over data and setup stars/planets/moons for everything
   createStar({radius: 1000, coordinates: {y: -1800, x: 0, z: 0}, color: Colors.red});
-  createPlanet({radius: 50, coordinates: {y: 20, x: 0, z: 0}, color: Colors.blue});
+  createPlanet({radius: 50, coordinates: {y: 800, x: 0, z: 0}, color: Colors.blue});
   createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.orange});
   createMoon({parent: planets[0]});
   createMoon({parent: planets[1]});
