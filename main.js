@@ -1,14 +1,15 @@
 // For each Site, create a Star
 // For each Story within a site (up to 10) create a Planet
 // For each Planet, scale the size based on the number of pageviews
-// For each planet, add a moon for each share on Facebook and Twitter
+// For each planet, add a moon for each share on 'Facebook' and 'Twitter'
 // For each moon, scale the size based on the engagement rate of the social post
 
 var Config = {
   selector: 'visualization',
   fov: 60,
   near_plane: 1,
-  far_plane: 200000
+  far_plane: 200000,
+  max_star_size: 15000
 };
 
 var Colors = {
@@ -31,11 +32,11 @@ var Colors = {
 };
 
 var Sites = {
-  polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: 4100, y: 0, z: -540}},
+  polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: 0, y: 0, z: 0}},
   vox:              {name: 'Vox', radius: 0, color: Colors.sites.vox,  coordinates: {x: 10000, y: 5000, z: 8000}},
   recode:           {name: 'Recode', radius: 0, color: Colors.sites.recode,  coordinates: {x: -10000, y: -5000, z: 19872}},
   verge:            {name: 'The Verge', radius: 0, color: Colors.sites.verge,  coordinates: {x: -20000, y: -14000, z: -10}},
-  sbnation:         {name: 'SB Nation', radius: 0, color: Colors.sites.sbnation,  coordinates: {x: 20000, y: 12000, z: 650}},
+  sbnation:         {name: 'SB Nation', radius: 0, color: Colors.sites.sbnation,  coordinates: {x: 45000, y: 12000, z: 650}},
   curbed:           {name: 'Curbed', radius: 0, color: Colors.sites.curbed,  coordinates: {x: 10000, y: -3000, z: 12345}},
   eater:            {name: 'Eater', radius: 0, color: Colors.sites.eater,  coordinates: {x: -10000, y: 680, z: -11234}},
   racked:           {name: 'Racked', radius: 0, color: Colors.sites.racked,  coordinates: {x: 20000, y: -12012, z: -2310}},
@@ -82,7 +83,7 @@ function createScene() {
   // controls
   controls = new THREE.OrbitControls( camera );
   controls.minDistance = 200;
-  controls.maxDistance = 50000;
+  controls.maxDistance = Config.far_plane / 2;
 
   // Set up WebGL Renderer
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -161,7 +162,6 @@ Planet = function(options){
   if (options.coordinates != null) {
     this.mesh.position.set(options.coordinates.x, options.coordinates.y, options.coordinates.z);
   }
-  console.log(this.mesh.position);
 };
 
 // 3D Models
@@ -280,23 +280,42 @@ function init(event){
   createScene();
   createLights();
 
+  // Iterate through sites and normalize the size (determined by pageviews)
+  // to a max of Config.max_star_size
+  var site_sizes = [];
+
+  for (var key in data.sites) {
+    var site = data.sites[key];
+    site_sizes.push(site.pageviews);
+  }
+
+  var max_site_size = Math.max.apply(Math, site_sizes);
+  var ratio = max_site_size / Config.max_star_size;
+
+   for (var key in data.sites) {
+    var site = data.sites[key];
+    site.size = Math.round(site.pageviews / ratio);
+  }
 
   // Loop over sites and place the stars & each system container
   for (var key in Sites) {
     if (!Sites.hasOwnProperty(key)) continue;
 
     var site = Sites[key];
-    site.radius = 300;//getRandomInt(300, 1000);
+    site.radius = data.sites[key].size;//getRandomInt(300, 1000);
     // Limited to only build one for now: TODO - remove
     //if (site = Sites['polygon']) {
       //createStar({radius: site.radius, coordinates: site.coordinates, color: site.color});
     //}
+    //site.radius = data.sites[key].pageviews;
+    console.log(site.radius);
     createStar({radius: site.radius, coordinates: site.coordinates, color: site.color});
   }
 
+
   createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.polygon});
   createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.polygon});
-  createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.recode});
+  //createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.recode});
 
   createMoon({radius: 10, color: Colors.cream, detail: 0, parent: planets[0]});
   createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[0]});
@@ -321,7 +340,6 @@ function getRandom(min, max) {
   return Math.random() * (max - min) + min;
 }
 
-
 // Dataset
 
 var data = {
@@ -330,219 +348,40 @@ var data = {
       pageviews: 12610292,
       stories: [
         {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 997719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
         },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 997719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
         },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        }
-      ]
-    },
-    vox: {
-      pageviews: 18549139,
-      stories: [
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        }
-      ]
-    },
-    recode: {
-      pageviews: 1460330,
-      stories: [
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        }
-      ]
-    },
-    verge: {
-      pageviews: 21103987,
-      stories: [
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 997719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
         }
       ]
     },
@@ -550,277 +389,223 @@ var data = {
       pageviews: 102817237,
       stories: [
         {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
+          title: '',
+          image: '',
+          author: '',
+          pageviews: '',
+          social_posts: [
+            {platform: 'twitter', engagement: 0.03, title: ''},
+            {platform: 'facebook', engagement: 0.11, title: ''}
+          ]
         },
         {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
+          title: '',
+          image: '',
+          author: '',
+          pageviews: '',
+          social_posts: [
+            {platform: 'twitter', engagement: 0.03, title: ''},
+            {platform: 'facebook', engagement: 0.11, title: ''}
+          ]
         },
         {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
+          title: '',
+          image: '',
+          author: '',
+          pageviews: '',
+          social_posts: [
+            {platform: 'twitter', engagement: 0.03, title: ''},
+            {platform: 'facebook', engagement: 0.11, title: ''}
+          ]
         }
       ]
+    },
+    recode: {
+      pageviews: 1460330,
+
+    },
+    verge: {
+      pageviews: 21103987,
     },
     curbed: {
       pageviews: 4183807,
-      stories: [
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        }
-      ]
     },
     eater: {
       pageviews: 7101163,
-      stories: [
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        }
-      ]
     },
     racked: {
       pageviews: 1191117,
-      stories: [
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        }
-      ]
     },
     voxcreative: {
       pageviews: 109720,
+    },
+    vox: {
+      pageviews: 18549139,
       stories: [
         {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 997719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
         },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 997719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
         },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
-        },
-        {
-          title:
-          image:
-          author:
-          pageviews:
-          social_posts: {
-            {platform: twitter, engagement: 0.03, title: ''},
-            {platform: facebook, engagement: 0.11, title: ''}
-          }
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 997719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
         }
       ]
     }
   }
 };
+
+//         {
+//           title: 'Next time someone tells you "all lives matter," show them this cartoon',
+//           image: 'https://cdn0.vox-cdn.com/thumbor/VL-0WgeZuDr8kbRTm91jgS25NjI=/250x250/cdn0.vox-cdn.com/uploads/chorus_image/image/47088146/GettyImages-460019528.0.jpg',
+//           author: 'German Lopez',
+//           pageviews: 1637608,
+//           social_posts: {
+//             {platform: 'twitter', engagement: 0.00, title: '', account: },
+//             {platform: 'twitter', engagement: 0.0895, title: '', account: },
+//             {platform: 'facebook', engagement: 0.11, title: '', account: },
+//             {platform: 'facebook', engagement: 0.11, title: '', account: }
+//           }
+//         },
+//         {
+//           title: 'Understanding Hillary: Why the Clinton America sees isn’t the Clinton colleagues know'
+//           image:
+//           author: 'Ezra Klein'
+//           pageviews:
+//           social_posts: {
+//             {platform: 'twitter', engagement: 0.03, title: ''},
+//             {platform: 'facebook', engagement: 0.11, title: ''}
+//           }
+//         },
+//         {
+//           title: 'Pokémon Go is everything that is wrong with late capitalism',
+//           image:
+//           author:
+//           pageviews:
+//           social_posts: {
+//             {platform: 'twitter', engagement: 0.03, title: ''},
+//             {platform: 'facebook', engagement: 0.11, title: ''}
+//           }
+//         },
+//         {
+//           title: 'We need to call American breakfast what it often is: dessert'
+//           image:
+//           author:
+//           pageviews:
+//           social_posts: {
+//             {platform: 'twitter', engagement: 0.03, title: ''},
+//             {platform: 'facebook', engagement: 0.11, title: ''}
+//           }
+//         }
+//       ]
+//     },
+//     recode: {
+//       pageviews: 1460330,
+//
+//     },
+//     verge: {
+//       pageviews: 21103987,
+//
+//     },
+//     sbnation: {
+//       pageviews: 102817237,
+//       stories: [
+//         {
+//           title:
+//           image:
+//           author:
+//           pageviews:
+//           social_posts: {
+//             {platform: 'twitter', engagement: 0.03, title: ''},
+//             {platform: 'facebook', engagement: 0.11, title: ''}
+//           }
+//         },
+//         {
+//           title:
+//           image:
+//           author:
+//           pageviews:
+//           social_posts: {
+//             {platform: 'twitter', engagement: 0.03, title: ''},
+//             {platform: 'facebook', engagement: 0.11, title: ''}
+//           }
+//         },
+//         {
+//           title:
+//           image:
+//           author:
+//           pageviews:
+//           social_posts: {
+//             {platform: 'twitter', engagement: 0.03, title: ''},
+//             {platform: 'facebook', engagement: 0.11, title: ''}
+//           }
+//         },
+//         {
+//           title:
+//           image:
+//           author:
+//           pageviews:
+//           social_posts: {
+//             {platform: 'twitter', engagement: 0.03, title: ''},
+//             {platform: 'facebook', engagement: 0.11, title: ''}
+//           }
+//         },
+//         {
+//           title:
+//           image:
+//           author:
+//           pageviews:
+//           social_posts: {
+//             {platform: 'twitter', engagement: 0.03, title: ''},
+//             {platform: 'facebook', engagement: 0.11, title: ''}
+//           }
+//         }
+//       ]
+//     },
+//     curbed: {
+//       pageviews: 4183807,
+//
+//     },
+//     eater: {
+//       pageviews: 7101163,
+//
+//     },
+//     racked: {
+//       pageviews: 1191117,
+//
+//     },
+//     voxcreative: {
+//       pageviews: 109720,
+//
+//     }
+//   }
+// };
 
