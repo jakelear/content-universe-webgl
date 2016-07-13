@@ -66,6 +66,8 @@ var scene,
 // Container for scene objects (only clickable elems go in here)
 var sceneObjects = [], meshcount;
 
+var PAUSE = false;
+
 var HEIGHT,
     WIDTH;
 
@@ -222,7 +224,7 @@ function createPlanet(options) {
   sceneObjects.push(planet.mesh);
   planet.pivot = pivot;
 
-  return planet.mesh;
+  return planet;
 }
 
 function createMoon(options){
@@ -260,6 +262,10 @@ function distanceToNearestMesh() {
 
 // Main render loop - updates every animation frame tick
 function loop(){
+  if ( PAUSE ) {
+    return;
+  }
+
   var delta = clock.getDelta();
   controls.update(delta);
 
@@ -296,7 +302,7 @@ function loop(){
   // Iterate over the moons and rotate
   num_moon_pivots = moon_pivot_containers.length;
   for (var i = 0; i < num_moon_pivots; i++) {
-    moon_pivot_containers[i].rotation.z += 0.005 / (i+1);
+    moon_pivot_containers[i].rotation.z += 0.05 / (i+1);
   }
 
   // Iterate over the planet containers and rotate
@@ -367,7 +373,7 @@ function init(event){
     stories.forEach(function(story) {
       var size = Math.round(story.pageviews / planet_ratio);
       console.log('story size: ', size);
-      createPlanet({radius: size, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.polygon});
+      var planet = createPlanet({radius: size, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.polygon});
 
 
       var moon_sizes = [];
@@ -382,38 +388,11 @@ function init(event){
       var moon_ratio = max_moon_size / (size / 2);
 
       story.social_posts.forEach(function(post) {
-        // createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[1]});
+        var moon_radius = (post.engagement * 1000) / moon_ratio;
+        createMoon({radius: moon_radius, color: Colors.cream, detail: 0, parent: planet});
       });
     });
   }
-
-  //createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.polygon});
-  //createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.polygon});
-
-  //createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.racked});
-  //createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.racked});
-
-  //createPlanet({radius: 50, coordinates: {y: 0, x: 0, z: 0}, color: Colors.blue, detail: 1, parent: Sites.voxcreative});
-//  createPlanet({radius: 50, coordinates: {y: 0, x: 0, z: 0}, color: Colors.red, detail: 1, parent: Sites.voxcreative});
-
-  //createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.sbnation});
-  //createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.sbnation});
-
-  // createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.verge});
-  // createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.verge});
-
-  // createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.vox});
-  // createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.vox});
-
-
-  createMoon({radius: 10, color: Colors.cream, detail: 0, parent: planets[0]});
-  createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[0]});
-  createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[0]});
-  // createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[1]});
-  // createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[1]});
-  // createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[2]});
-  // createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[2]});
-
 
   meshcount = sceneObjects.length;
   loop();
@@ -421,6 +400,19 @@ function init(event){
 
 // On load fire the init
 window.addEventListener('load', init, false);
+document.addEventListener("keydown", function(event) {
+
+    if ( event.altKey ) {
+      return;
+    }
+
+    switch ( event.keyCode ) {
+
+      case 32: PAUSE = !PAUSE; loop(); break;
+
+    }
+
+});
 //window.document.addEventListener('click', onDocumentMouseDown, false);
 
 // UTILS
