@@ -6,10 +6,13 @@
 
 var Config = {
   selector: 'visualization',
+  camera_spawn_position: {x: 0, y: 0, z: 500},
+  camera_base_speed: 10000,
   fov: 60,
   near_plane: 1,
-  far_plane: 150000,
-  max_star_size: 5000
+  far_plane: 1500000,
+  max_star_size: 100000,
+  closeness_threshhold: 2000,
 };
 
 var Colors = {
@@ -32,23 +35,26 @@ var Colors = {
 };
 
 var Sites = {
-  voxcreative:      {name: 'Vox Creative', radius: 0, color: Colors.sites.voxcreative,   coordinates: {x: 0, y: 0, z: 0}},
-  racked:           {name: 'Racked', radius: 0, color: Colors.sites.racked,  coordinates: {x: 2000, y: -1012, z: 2310}},
-  recode:           {name: 'Recode', radius: 0, color: Colors.sites.recode,  coordinates: {x: -1000, y: -5000, z: 19872}},
-  curbed:           {name: 'Curbed', radius: 0, color: Colors.sites.curbed,  coordinates: {x: 10000, y: -3000, z: 32345}},
-  eater:            {name: 'Eater', radius: 0, color: Colors.sites.eater,  coordinates: {x: -30000, y: 680, z: -11234}},
-  polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: -20000, y: -21300, z: -1000}},
-  vox:              {name: 'Vox', radius: 0, color: Colors.sites.vox,  coordinates: {x: 10000, y: 5000, z: 48000}},
-  verge:            {name: 'The Verge', radius: 0, color: Colors.sites.verge,  coordinates: {x: -20000, y: -14000, z: -10}},
-  sbnation:         {name: 'SB Nation', radius: 0, color: Colors.sites.sbnation,  coordinates: {x: 5000, y: 22000, z: 650}}
+  // voxcreative:      {name: 'Vox Creative', radius: 0, color: Colors.sites.voxcreative,   coordinates: {x: 0, y: 0, z: 0}},
+  // racked:           {name: 'Racked', radius: 0, color: Colors.sites.racked,  coordinates: {x: 20000, y: -10012, z: 23100}},
+  // recode:           {name: 'Recode', radius: 0, color: Colors.sites.recode,  coordinates: {x: -10000, y: -50000, z: 198072}},
+  // curbed:           {name: 'Curbed', radius: 0, color: Colors.sites.curbed,  coordinates: {x: 100000, y: -30000, z: 323045}},
+  // eater:            {name: 'Eater', radius: 0, color: Colors.sites.eater,  coordinates: {x: -300000, y: 6800, z: -112304}},
+  //polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: -200000, y: -201300, z: -10000}},
+  polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: 0, y: 0, z: 0}},
+  // vox:              {name: 'Vox', radius: 0, color: Colors.sites.vox,  coordinates: {x: 10000, y: 50000, z: 480000}},
+  // verge:            {name: 'The Verge', radius: 0, color: Colors.sites.verge,  coordinates: {x: -200000, y: -104000, z: -100}},
+  // sbnation:         {name: 'SB Nation', radius: 0, color: Colors.sites.sbnation,  coordinates: {x: 50000, y: 220000, z: 6500}}
 };
 
 // THREEJS RELATED VARIABLES
 
+// Camera Vars
 var radius = 6371;
 var tilt = 0.41;
-var rotationSpeed = 0.02;
+var rotationSpeed = 0.2;
 
+// Objects
 var scene,
     camera,
     aspectRatio,
@@ -56,18 +62,15 @@ var scene,
     controls,
     clock,
     container;
-var sceneObjects = [];
 
-//SCREEN & MOUSE VARIABLES
+// Container for scene objects (only clickable elems go in here)
+var sceneObjects = [], meshcount;
 
 var HEIGHT,
-    WIDTH,
-    mousePos = { x: 0, y: 0 };
-
+    WIDTH;
 
 // Create ThreeJS Scene and Camera
 function createScene() {
-
   HEIGHT = window.innerHeight;
   WIDTH = window.innerWidth;
 
@@ -75,13 +78,10 @@ function createScene() {
   aspectRatio = WIDTH / HEIGHT;
 
   camera = new THREE.PerspectiveCamera( Config.fov, aspectRatio, Config.near_plane, Config.far_plane );
-  camera.position.z = radius * 5;
 
   //scene.fog = new THREE.Fog(Colors.cream, 10000,55000);
   scene.fog = new THREE.FogExp2( 0x000000, 0.00000025 );
-  camera.position.x = 0;
-  camera.position.z = 20;
-  camera.position.y = 0;
+  camera.position = Config.camera_spawn_position;
 
    // Set up WebGL Renderer
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -98,7 +98,7 @@ function createScene() {
 
   // controls
   controls = new THREE.FlyControls( camera );
-  controls.movementSpeed = 500;
+  controls.movementSpeed = Config.camera_base_speed;
   controls.domElement = container;
   controls.rollSpeed = Math.PI / 24;
   controls.autoForward = false;
@@ -210,7 +210,9 @@ function createPlanet(options) {
   // integer greater than 50 + 2x the size of the star but smaller than 4x the size of the star
   // 300 is the default size for stars, then add 2x the radius so that there is some distance
   // TODO: update to be dynamic for dynamic planet sizes
-  planet.mesh.position.y = 300 + getRandomInt((2*options.radius), (8*options.radius));
+  planet.mesh.position.y = options.parent.radius + getRandomInt((2*options.radius), (4*options.radius));
+  planet.mesh.position.x = options.parent.radius + getRandomInt((2*options.radius), (4*options.radius));
+  planet.mesh.position.z = options.parent.radius + getRandomInt((2*options.radius), (4*options.radius));
 
   // Add the planet to the container, which is in the scene
   var pivot = new THREE.Object3D();
@@ -219,6 +221,8 @@ function createPlanet(options) {
   pivot.add(planet.mesh);
   sceneObjects.push(planet.mesh);
   planet.pivot = pivot;
+
+  return planet.mesh;
 }
 
 function createMoon(options){
@@ -246,11 +250,30 @@ function createMoon(options){
   pivot.add( moon.mesh );
 }
 
+function distanceToNearestMesh() {
+  var distances = [];
+  for (var i=0; i < meshcount; i++) {
+    distances.push(camera.position.distanceTo(sceneObjects[i].position))
+  }
+   return Math.min.apply( Math, distances );
+}
 
 // Main render loop - updates every animation frame tick
 function loop(){
   var delta = clock.getDelta();
   controls.update(delta);
+
+  var d = distanceToNearestMesh();
+  // Slow down when we get closer than Config.closeness_threshhold to a body
+  if (d < Config.closeness_threshhold) {
+    controls.movementSpeed = 1500;
+  } else {
+    controls.movementSpeed = Config.camera_base_speed;
+
+  }
+
+  //console.log('distance:', d);
+  //console.log('Speed:', controls.movementSpeed);
 
   // Iterate over stars and rotate them
   numplanets = planets.length;
@@ -311,6 +334,7 @@ function init(event){
    for (var key in data.sites) {
     var site = data.sites[key];
     site.size = Math.round(site.pageviews / ratio);
+    //console.log(key, 'size: ', site.size);
   }
 
   // Loop over sites and set the site radius to the correct normalized size
@@ -323,17 +347,75 @@ function init(event){
 
     // create star for each site
     createStar({radius: site.radius, coordinates: site.coordinates, color: site.color});
+
+    var planet_sizes = [];
+    var stories = data.sites[key].stories;
+
+    // Iterate over stories and add the pageviews to the planet_sizes array
+    // so we can normalize it
+    stories.forEach(function(story) {
+      planet_sizes.push(story.pageviews);
+    });
+
+    // Discover the max story size and create a ratio
+    // to normalize the planet sizes
+    // Should be no larger than 50% of the parent star
+    var max_planet_size = Math.max.apply(Math, planet_sizes);
+    var planet_ratio = max_planet_size / (data.sites[key].size / 3);
+
+    // Iterate over stories again and build planets for each
+    stories.forEach(function(story) {
+      var size = Math.round(story.pageviews / planet_ratio);
+      console.log('story size: ', size);
+      createPlanet({radius: size, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.polygon});
+
+
+      var moon_sizes = [];
+      story.social_posts.forEach(function(post) {
+        var moon_size = post.engagement * 1000;
+        moon_sizes.push(moon_size);
+      });
+      // Discover the max social post size and create a ratio
+      // to normalize the moon sizes
+      // Should be no larger than 50% of the parent planet
+      var max_moon_size = Math.max.apply(Math, moon_sizes);
+      var moon_ratio = max_moon_size / (size / 2);
+
+      story.social_posts.forEach(function(post) {
+        // createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[1]});
+      });
+    });
   }
 
-  createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.polygon});
-  createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.polygon});
+  //createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.polygon});
+  //createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.polygon});
+
+  //createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.racked});
+  //createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.racked});
+
+  //createPlanet({radius: 50, coordinates: {y: 0, x: 0, z: 0}, color: Colors.blue, detail: 1, parent: Sites.voxcreative});
+//  createPlanet({radius: 50, coordinates: {y: 0, x: 0, z: 0}, color: Colors.red, detail: 1, parent: Sites.voxcreative});
+
+  //createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.sbnation});
+  //createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.sbnation});
+
+  // createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.verge});
+  // createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.verge});
+
+  // createPlanet({radius: 50, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.vox});
+  // createPlanet({radius: 50, coordinates: {y: -1000, x: -500, z: -300}, color: Colors.red, detail: 1, parent: Sites.vox});
+
 
   createMoon({radius: 10, color: Colors.cream, detail: 0, parent: planets[0]});
   createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[0]});
   createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[0]});
-  createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[1]});
-  createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[1]});
+  // createMoon({radius: 30, color: Colors.cream, detail: 0, parent: planets[1]});
+  // createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[1]});
+  // createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[2]});
+  // createMoon({radius: 20, color: Colors.cream, detail: 0, parent: planets[2]});
 
+
+  meshcount = sceneObjects.length;
   loop();
 }
 
@@ -361,7 +443,7 @@ var data = {
           title: 'Pokémon Go, explained',
           image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
           author: 'German Lopez',
-          pageviews: 997719,
+          pageviews: 397719,
           social_posts: [
             {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
             {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
@@ -373,7 +455,7 @@ var data = {
           title: 'Pokémon Go, explained',
           image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
           author: 'German Lopez',
-          pageviews: 997719,
+          pageviews: 107719,
           social_posts: [
             {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
             {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
@@ -385,7 +467,7 @@ var data = {
           title: 'Pokémon Go, explained',
           image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
           author: 'German Lopez',
-          pageviews: 997719,
+          pageviews: 1997719,
           social_posts: [
             {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
             {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
@@ -493,129 +575,4 @@ var data = {
   }
 };
 
-//         {
-//           title: 'Next time someone tells you "all lives matter," show them this cartoon',
-//           image: 'https://cdn0.vox-cdn.com/thumbor/VL-0WgeZuDr8kbRTm91jgS25NjI=/250x250/cdn0.vox-cdn.com/uploads/chorus_image/image/47088146/GettyImages-460019528.0.jpg',
-//           author: 'German Lopez',
-//           pageviews: 1637608,
-//           social_posts: {
-//             {platform: 'twitter', engagement: 0.00, title: '', account: },
-//             {platform: 'twitter', engagement: 0.0895, title: '', account: },
-//             {platform: 'facebook', engagement: 0.11, title: '', account: },
-//             {platform: 'facebook', engagement: 0.11, title: '', account: }
-//           }
-//         },
-//         {
-//           title: 'Understanding Hillary: Why the Clinton America sees isn’t the Clinton colleagues know'
-//           image:
-//           author: 'Ezra Klein'
-//           pageviews:
-//           social_posts: {
-//             {platform: 'twitter', engagement: 0.03, title: ''},
-//             {platform: 'facebook', engagement: 0.11, title: ''}
-//           }
-//         },
-//         {
-//           title: 'Pokémon Go is everything that is wrong with late capitalism',
-//           image:
-//           author:
-//           pageviews:
-//           social_posts: {
-//             {platform: 'twitter', engagement: 0.03, title: ''},
-//             {platform: 'facebook', engagement: 0.11, title: ''}
-//           }
-//         },
-//         {
-//           title: 'We need to call American breakfast what it often is: dessert'
-//           image:
-//           author:
-//           pageviews:
-//           social_posts: {
-//             {platform: 'twitter', engagement: 0.03, title: ''},
-//             {platform: 'facebook', engagement: 0.11, title: ''}
-//           }
-//         }
-//       ]
-//     },
-//     recode: {
-//       pageviews: 1460330,
-//
-//     },
-//     verge: {
-//       pageviews: 21103987,
-//
-//     },
-//     sbnation: {
-//       pageviews: 102817237,
-//       stories: [
-//         {
-//           title:
-//           image:
-//           author:
-//           pageviews:
-//           social_posts: {
-//             {platform: 'twitter', engagement: 0.03, title: ''},
-//             {platform: 'facebook', engagement: 0.11, title: ''}
-//           }
-//         },
-//         {
-//           title:
-//           image:
-//           author:
-//           pageviews:
-//           social_posts: {
-//             {platform: 'twitter', engagement: 0.03, title: ''},
-//             {platform: 'facebook', engagement: 0.11, title: ''}
-//           }
-//         },
-//         {
-//           title:
-//           image:
-//           author:
-//           pageviews:
-//           social_posts: {
-//             {platform: 'twitter', engagement: 0.03, title: ''},
-//             {platform: 'facebook', engagement: 0.11, title: ''}
-//           }
-//         },
-//         {
-//           title:
-//           image:
-//           author:
-//           pageviews:
-//           social_posts: {
-//             {platform: 'twitter', engagement: 0.03, title: ''},
-//             {platform: 'facebook', engagement: 0.11, title: ''}
-//           }
-//         },
-//         {
-//           title:
-//           image:
-//           author:
-//           pageviews:
-//           social_posts: {
-//             {platform: 'twitter', engagement: 0.03, title: ''},
-//             {platform: 'facebook', engagement: 0.11, title: ''}
-//           }
-//         }
-//       ]
-//     },
-//     curbed: {
-//       pageviews: 4183807,
-//
-//     },
-//     eater: {
-//       pageviews: 7101163,
-//
-//     },
-//     racked: {
-//       pageviews: 1191117,
-//
-//     },
-//     voxcreative: {
-//       pageviews: 109720,
-//
-//     }
-//   }
-// };
 
