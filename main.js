@@ -65,6 +65,11 @@ var scene,
     container,
     animframe;
 
+var line;
+var MAX_POINTS = 500;
+var drawCount;
+var splineArray= [];
+
 // Container for scene objects (only clickable elems go in here)
 var sceneObjects = [], meshcount;
 
@@ -73,6 +78,14 @@ var control_type = 'orbital';
 
 var HEIGHT,
     WIDTH;
+
+var line_material = new THREE.LineBasicMaterial({
+  color: 0xFFFFFF,
+  linewidth : 2000,
+  transparent: true,
+  opacity: 0.9
+});
+
 
 // Create ThreeJS Scene and Camera
 function createScene() {
@@ -107,7 +120,7 @@ function createScene() {
     /////////////////////////////////////////////
     controls = new THREE.OrbitControls(camera);
     controls = new THREE.OrbitControls( camera );
-    controls.minDistance = 200;
+    controls.minDistance = 20000;
     controls.maxDistance = Config.far_plane / 2;
     /////////////////////////////////////////////
   } else if (control_type == 'fly') {
@@ -229,8 +242,25 @@ function createPlanet(options) {
   sceneObjects.push(planet.mesh);
   planet.pivot = pivot;
 
+  // // Add the line that trails the planet
+  // var line_geometry = new THREE.Geometry();
+  // line_geometry.dynamic = true;
+  // for(var fv = 0; fv < 10; fv++) {
+  //   //console.log(planet.mesh.position.clone());
+  //   line_geometry.vertices.push(planet.mesh.position.clone());
+  // }
+  // planet.line = new THREE.Line(line_geometry, line_material);
+  // // planet.line.position.setX(planet.mesh.position.x);
+  // // planet.line.position.setY(planet.mesh.position.y);
+  // // planet.line.position.setZ(planet.mesh.position.z);
+  // planet.line.position.setX(0);
+  // planet.line.position.setY(0);
+  // planet.line.position.setZ(0);
+  // scene.add(planet.line);
+
   return planet;
 }
+
 
 function createMoon(options){
   var container = new THREE.Object3D();
@@ -285,6 +315,10 @@ function loop(){
   numplanets = planets.length;
   for (var i = 0; i < numplanets; i++) {
     planets[i].mesh.rotation.z += 0.005;
+    // Trails
+    // planets[i].line.geometry.vertices.shift();
+    // planets[i].line.geometry.vertices.push(planets[i].mesh.position.clone());
+    // planets[i].line.geometry.verticesNeedUpdate = true;
   }
 
   // Iterate over stars and rotate them
@@ -361,7 +395,6 @@ function init(event){
    for (var key in data.sites) {
     var site = data.sites[key];
     site.size = Math.round(site.pageviews / ratio);
-    //console.log(key, 'size: ', site.size);
   }
 
   // Loop over sites and set the site radius to the correct normalized size
@@ -454,8 +487,8 @@ function init(event){
 // On load fire the init
 window.addEventListener('load', init, false);
 document.addEventListener("keydown", function(event) {
-    console.log('distance:', distanceToNearestMesh());
-    console.log('Speed:', controls.movementSpeed);
+    // console.log('distance:', distanceToNearestMesh());
+    // console.log('Speed:', controls.movementSpeed);
 
     if ( event.altKey ) {
       return;
@@ -512,7 +545,7 @@ var data = {
           author: 'German Lopez',
           pageviews: 107719,
           social_posts: [
-            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.3610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
             {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
             {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
             {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
@@ -525,7 +558,7 @@ var data = {
           pageviews: 1997719,
           social_posts: [
             {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
-            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'twitter', engagement: 0.1613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
             {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
             {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
           ]
@@ -537,9 +570,7 @@ var data = {
           pageviews: 197719,
           social_posts: [
             {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
-            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
-            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
-            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'}
           ]
         },
          {
@@ -549,8 +580,8 @@ var data = {
           pageviews: 1107719,
           social_posts: [
             {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
-            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
             {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.423, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
             {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
           ]
         },
