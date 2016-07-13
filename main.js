@@ -21,6 +21,8 @@ var Colors = {
   cream: '#f2ebbe',
   orange: '#f3b560',
   red: '#f06361',
+  twitter: '#00eaff',
+  facebook: '#246bec',
   sites: {
     polygon: '#ff0052',
     vox: '#f1e301',
@@ -100,6 +102,7 @@ function createScene() {
 
   // controls
   controls = new THREE.FlyControls( camera );
+  //controls = new THREE.OrbitControls(camera);
   controls.movementSpeed = Config.camera_base_speed;
   controls.domElement = container;
   controls.rollSpeed = Math.PI / 24;
@@ -367,7 +370,7 @@ function init(event){
     // to normalize the planet sizes
     // Should be no larger than 50% of the parent star
     var max_planet_size = Math.max.apply(Math, planet_sizes);
-    var planet_ratio = max_planet_size / (data.sites[key].size / 3);
+    var planet_ratio = max_planet_size / (data.sites[key].size / 2);
 
     // Iterate over stories again and build planets for each
     stories.forEach(function(story) {
@@ -389,7 +392,15 @@ function init(event){
 
       story.social_posts.forEach(function(post) {
         var moon_radius = (post.engagement * 1000) / moon_ratio;
-        createMoon({radius: moon_radius, color: Colors.cream, detail: 0, parent: planet});
+        var color;
+        if (post.platform == 'twitter') {
+          color = Colors.twitter;
+        } else if (post.platform == 'facebook') {
+          color = Colors.facebook;
+        } else {
+          color = Colors.cream;
+        }
+        createMoon({radius: moon_radius, color: color, detail: 0, parent: planet});
       });
     });
   }
