@@ -1,4 +1,5 @@
 <script type="text/javascript" src="three.min.js"></script>
+<script type="text/javascript" src="jquery-3.0.0.min.js"></script>
 <script src="FlyControls.js"></script>
 <script src="OrbitControls.js"></script>
 
@@ -6,14 +7,112 @@
 
 </div>
 
+<div class="controls">
+  <a class="control-btn" data-control-type="fly">Fly</a>
+  <a class="control-btn active" data-control-type="orbital">Orbit</a>
+</div>
+
+<script>
+  $('.control-btn').on('click', function(e){
+    changeControlType(this.getAttribute('data-control-type'));
+    $('.control-btn').removeClass('active');
+    $(this).addClass('active');
+  });
+</script>
+
 <style>
+  /* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+  */
+
+  html, body, div, span, applet, object, iframe,
+  h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+  a, abbr, acronym, address, big, cite, code,
+  del, dfn, em, img, ins, kbd, q, s, samp,
+  small, strike, strong, sub, sup, tt, var,
+  b, u, i, center,
+  dl, dt, dd, ol, ul, li,
+  fieldset, form, label, legend,
+  table, caption, tbody, tfoot, thead, tr, th, td,
+  article, aside, canvas, details, embed,
+  figure, figcaption, footer, header, hgroup,
+  menu, nav, output, ruby, section, summary,
+  time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+  }
+  /* HTML5 display-role reset for older browsers */
+  article, aside, details, figcaption, figure,
+  footer, header, hgroup, menu, nav, section {
+    display: block;
+  }
+  body {
+    line-height: 1;
+  }
+  ol, ul {
+    list-style: none;
+  }
+  blockquote, q {
+    quotes: none;
+  }
+  blockquote:before, blockquote:after,
+  q:before, q:after {
+    content: '';
+    content: none;
+  }
+  table {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+
+  .controls {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 10;
+  }
+
+  .controls h1 {
+
+  }
+
+  .control-btn {
+    display: inline-block;
+    padding: 10px;
+    margin: 10px 10px 0 0;
+    width: 30px;
+    text-align: center;
+    font-family: 'Gotham', sans-serif;
+    font-weight: 100;
+    text-transform: uppercase;
+    font-size: 10px;
+    color: #CCC;
+    border: 1px solid #CCC;
+    cursor: pointer;
+  }
+
+  .control-btn.active {
+    cursor: default;
+    color: #fff;
+    border-color: #FFF;
+    -webkit-box-shadow: 0px 0px 8px -2px rgba(255,255,255,1);
+    -moz-box-shadow: 0px 0px 8px -2px rgba(255,255,255,1);
+    box-shadow: 0px 0px 8px -2px rgba(255,255,255,1);
+  }
+
+
   #visualization {
     position: absolute;
     width: 100%;
     height: 100%;
     overflow: hidden;
     //background: #000;
-    //background: linear-gradient( #5c4b51, #8dbeb2);
+    background: linear-gradient( #5c4b51, #1b092c);
   }
 </style>
 

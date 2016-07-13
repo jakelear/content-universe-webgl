@@ -24,7 +24,7 @@ var Colors = {
   twitter: '#00eaff',
   facebook: '#246bec',
   sites: {
-    polygon: '#ff0052',
+    polygon: '#f7f56b',
     vox: '#f1e301',
     recode: '#f13901',
     verge: '#ff800f',
@@ -37,13 +37,13 @@ var Colors = {
 };
 
 var Sites = {
+  polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: 0, y: 0, z: 0}},
   // voxcreative:      {name: 'Vox Creative', radius: 0, color: Colors.sites.voxcreative,   coordinates: {x: 0, y: 0, z: 0}},
   // racked:           {name: 'Racked', radius: 0, color: Colors.sites.racked,  coordinates: {x: 20000, y: -10012, z: 23100}},
   // recode:           {name: 'Recode', radius: 0, color: Colors.sites.recode,  coordinates: {x: -10000, y: -50000, z: 198072}},
   // curbed:           {name: 'Curbed', radius: 0, color: Colors.sites.curbed,  coordinates: {x: 100000, y: -30000, z: 323045}},
   // eater:            {name: 'Eater', radius: 0, color: Colors.sites.eater,  coordinates: {x: -300000, y: 6800, z: -112304}},
-  //polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: -200000, y: -201300, z: -10000}},
-  polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: 0, y: 0, z: 0}},
+  // polygon:          {name: 'Polygon', radius: 0, color: Colors.sites.polygon,  coordinates: {x: -200000, y: -201300, z: -10000}},
   // vox:              {name: 'Vox', radius: 0, color: Colors.sites.vox,  coordinates: {x: 10000, y: 50000, z: 480000}},
   // verge:            {name: 'The Verge', radius: 0, color: Colors.sites.verge,  coordinates: {x: -200000, y: -104000, z: -100}},
   // sbnation:         {name: 'SB Nation', radius: 0, color: Colors.sites.sbnation,  coordinates: {x: 50000, y: 220000, z: 6500}}
@@ -63,12 +63,14 @@ var scene,
     renderer,
     controls,
     clock,
-    container;
+    container,
+    animframe;
 
 // Container for scene objects (only clickable elems go in here)
 var sceneObjects = [], meshcount;
 
-var PAUSE = false;
+var pause = false;
+var control_type = 'orbital';
 
 var HEIGHT,
     WIDTH;
@@ -102,23 +104,23 @@ function createScene() {
 
   // controls
 
-  /////////////////////////////////////////////
-  controls = new THREE.OrbitControls(camera);
-  controls = new THREE.OrbitControls( camera );
-  controls.minDistance = 200;
-  controls.maxDistance = Config.far_plane / 2;
-  /////////////////////////////////////////////
-
-  /////////////////////////////////////////////
-  // toggle fly camera
-  // controls = new THREE.FlyControls( camera );
-  // controls.movementSpeed = Config.camera_base_speed;
-  // controls.domElement = container;
-  // controls.rollSpeed = Math.PI / 24;
-  // controls.autoForward = false;
-  // controls.dragToLook = false;
-  /////////////////////////////////////////////
-
+  if (control_type == 'orbital') {
+    /////////////////////////////////////////////
+    controls = new THREE.OrbitControls(camera);
+    controls = new THREE.OrbitControls( camera );
+    controls.minDistance = 200;
+    controls.maxDistance = Config.far_plane / 2;
+    /////////////////////////////////////////////
+  } else if (control_type == 'fly') {
+    /////////////////////////////////////////////
+    controls = new THREE.FlyControls( camera );
+    controls.movementSpeed = Config.camera_base_speed;
+    controls.domElement = container;
+    controls.rollSpeed = Math.PI / 24;
+    controls.autoForward = false;
+    controls.dragToLook = false;
+    /////////////////////////////////////////////
+  }
 
   window.addEventListener('resize', handleWindowResize, false);
 }
@@ -215,18 +217,11 @@ function createPlanet(options) {
   scene.add(container);
 
   // create a new planet
+  console.log(options.coordinates);
   var planet = new Planet(options);
 
   // add this planet to the planets array
   planets.push(planet);
-
-  // Set the distance of the planet from the star at a random
-  // integer greater than 50 + 2x the size of the star but smaller than 4x the size of the star
-  // 300 is the default size for stars, then add 2x the radius so that there is some distance
-  // TODO: update to be dynamic for dynamic planet sizes
-  planet.mesh.position.y = options.parent.radius + getRandomInt((2*options.radius), (4*options.radius));
-  planet.mesh.position.x = options.parent.radius + getRandomInt((2*options.radius), (4*options.radius));
-  planet.mesh.position.z = options.parent.radius + getRandomInt((2*options.radius), (4*options.radius));
 
   // Add the planet to the container, which is in the scene
   var pivot = new THREE.Object3D();
@@ -256,7 +251,6 @@ function createMoon(options){
   // integer greater than 50 + 2x the size of the moon but smaller than 4x the size of the moon
   // 50 is the default size for planets, then add 2x the radius so that there is some distance
   // TODO: update to be dynamic for dynamic planet sizes
-  console.log('radius', options.radius);
   moon.mesh.position.y = 50 + getRandomInt((3*options.radius), (8*options.radius));
 
   var pivot = new THREE.Object3D();
@@ -275,16 +269,14 @@ function distanceToNearestMesh() {
 
 // Main render loop - updates every animation frame tick
 function loop(){
-  if ( PAUSE ) {
+  if ( pause ) {
     return;
   }
 
-  /////////////////////////////////////////////
-  // toggle fly camera
-  // var delta = clock.getDelta();
-  // controls.update(delta);
-  ////////////////////////////////////////
-
+  if (control_type == 'fly') {
+    var delta = clock.getDelta();
+    controls.update(delta);
+  }
 
   var d = distanceToNearestMesh();
   // Slow down when we get closer than Config.closeness_threshhold to a body
@@ -319,7 +311,7 @@ function loop(){
   // Iterate over the moons and rotate
   num_moon_pivots = moon_pivot_containers.length;
   for (var i = 0; i < num_moon_pivots; i++) {
-    moon_pivot_containers[i].rotation.z += 0.05 / (i+1);
+    moon_pivot_containers[i].rotation.z += 0.2 / (i+1);
   }
 
   // Iterate over the planet containers and rotate
@@ -330,8 +322,29 @@ function loop(){
 
   renderer.render(scene, camera);
 
-  requestAnimationFrame(loop);
+  animframe = requestAnimationFrame(loop);
 }
+
+// function for destroying and resetting
+function destroy() {
+    cancelAnimationFrame(animframe);// Stop the animation
+    scene = null;
+    camera = null;
+    controls = null;
+    container = document.getElementById(Config.selector);
+    while (container.lastChild) container.removeChild(container.lastChild);
+}
+
+function reset() {
+  destroy();
+  init();
+}
+
+function changeControlType(type) {
+  control_type = type;
+  reset();
+}
+
 
 // Initial render chain
 function init(event){
@@ -386,12 +399,23 @@ function init(event){
     var max_planet_size = Math.max.apply(Math, planet_sizes);
     var planet_ratio = max_planet_size / (data.sites[key].size / 2);
 
+    var planet_counter = 1;
     // Iterate over stories again and build planets for each
     stories.forEach(function(story) {
+      planet_counter++;
       var size = Math.round(story.pageviews / planet_ratio);
-      console.log('story size: ', size);
-      var planet = createPlanet({radius: size, coordinates: {y: 200, x: 300, z: 300}, color: Colors.blue, detail: 1, parent: Sites.polygon});
+      var coordinates =  {
+        x: ((getRandom(site.radius * -1, site.radius * 1.5)) * (planet_counter)),
+        y: ((getRandom(site.radius * -1, site.radius * 2)) * (planet_counter)),
+        z: ((getRandom(site.radius * -1, site.radius * 1.5)) * (planet_counter))
+      }
 
+      // Make sure the planet coordinate isn't inside the star
+      for (var coord in coordinates) {
+        coord < 0 ? coord -= site.radius : coord += site.radius;
+      }
+
+      var planet = createPlanet({radius: size, coordinates: coordinates, color: Colors.blue, detail: 1, parent: Sites.polygon});
 
       var moon_sizes = [];
       story.social_posts.forEach(function(post) {
@@ -400,9 +424,9 @@ function init(event){
       });
       // Discover the max social post size and create a ratio
       // to normalize the moon sizes
-      // Should be no larger than 50% of the parent planet
+      // Should be no larger than 33% of the parent planet
       var max_moon_size = Math.max.apply(Math, moon_sizes);
-      var moon_ratio = max_moon_size / (size / 2);
+      var moon_ratio = max_moon_size / (size / 3);
 
       story.social_posts.forEach(function(post) {
         var moon_radius = (post.engagement * 1000) / moon_ratio;
@@ -433,7 +457,7 @@ document.addEventListener("keydown", function(event) {
 
     switch ( event.keyCode ) {
 
-      case 32: PAUSE = !PAUSE; loop(); break;
+      case 32: pause = !pause; loop(); break;
 
     }
 
@@ -491,6 +515,42 @@ var data = {
             {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
             {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
           ]
+        },
+        {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 197719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 1107719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 997719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
         }
       ]
     },
@@ -531,22 +591,250 @@ var data = {
     },
     recode: {
       pageviews: 1460330,
+       stories: [
+        {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 397719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 107719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 1997719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        }
+      ]
 
     },
     verge: {
       pageviews: 21103987,
+       stories: [
+        {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 397719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 107719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 1997719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        }
+      ]
     },
     curbed: {
       pageviews: 4183807,
+       stories: [
+        {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 397719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 107719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 1997719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        }
+      ]
     },
     eater: {
       pageviews: 7101163,
+       stories: [
+        {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 397719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 107719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 1997719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        }
+      ]
     },
     racked: {
       pageviews: 1191117,
+       stories: [
+        {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 397719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 107719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 1997719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        }
+      ]
     },
     voxcreative: {
       pageviews: 109720,
+       stories: [
+        {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 397719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 107719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        },
+         {
+          title: 'Pokémon Go, explained',
+          image: 'https://cdn0.vox-cdn.com/thumbor/4ue0mnagslvrYqQKG7bKtDsQxjE=/250x250/cdn2.vox-cdn.com/uploads/chorus_image/image/50071681/GettyImages-453583790.0.jpg',
+          author: 'German Lopez',
+          pageviews: 1997719,
+          social_posts: [
+            {platform: 'twitter', engagement: 0.0610, title: 'Pokémon Go, explained', account: 'voxdotcom'},
+            {platform: 'twitter', engagement: 0.0613, title: 'The Pokémon Go explainer I\'ve been waiting for', account: 'mattyglesias'},
+            {platform: 'facebook', engagement: 0.123, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Vox'},
+            {platform: 'facebook', engagement: 0.11, title: 'Everyone is suddenly catching Pokémon fever again. Here’s what’s going on.', account: 'Ezra Klein'}
+          ]
+        }
+      ]
     },
     vox: {
       pageviews: 18549139,
