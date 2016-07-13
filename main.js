@@ -216,7 +216,6 @@ function createPlanet(options) {
   scene.add(container);
 
   // create a new planet
-  console.log(options.coordinates);
   var planet = new Planet(options);
 
   // add this planet to the planets array
@@ -273,16 +272,14 @@ function loop(){
   }
 
   var d = distanceToNearestMesh();
+  controls.movementSpeed = d;
   // Slow down when we get closer than Config.closeness_threshhold to a body
-  if (d < Config.closeness_threshhold) {
-    controls.movementSpeed = 1500;
-  } else {
-    controls.movementSpeed = Config.camera_base_speed;
+  // if (d < Config.closeness_threshhold) {
+  //   controls.movementSpeed = 1500;
+  // } else {
+  //   controls.movementSpeed = Config.camera_base_speed;
 
-  }
-
-  //console.log('distance:', d);
-  //console.log('Speed:', controls.movementSpeed);
+  // }
 
   // Iterate over stars and rotate them
   numplanets = planets.length;
@@ -457,6 +454,8 @@ function init(event){
 // On load fire the init
 window.addEventListener('load', init, false);
 document.addEventListener("keydown", function(event) {
+    console.log('distance:', distanceToNearestMesh());
+    console.log('Speed:', controls.movementSpeed);
 
     if ( event.altKey ) {
       return;
