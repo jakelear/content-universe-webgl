@@ -101,14 +101,23 @@ function createScene() {
   container.appendChild(renderer.domElement);
 
   // controls
-  controls = new THREE.FlyControls( camera );
-  //controls = new THREE.OrbitControls(camera);
-  controls.movementSpeed = Config.camera_base_speed;
-  controls.domElement = container;
-  controls.rollSpeed = Math.PI / 24;
-  controls.autoForward = false;
-  controls.dragToLook = false;
 
+  /////////////////////////////////////////////
+  controls = new THREE.OrbitControls(camera);
+  controls = new THREE.OrbitControls( camera );
+  controls.minDistance = 200;
+  controls.maxDistance = Config.far_plane / 2;
+  /////////////////////////////////////////////
+
+  /////////////////////////////////////////////
+  // toggle fly camera
+  // controls = new THREE.FlyControls( camera );
+  // controls.movementSpeed = Config.camera_base_speed;
+  // controls.domElement = container;
+  // controls.rollSpeed = Math.PI / 24;
+  // controls.autoForward = false;
+  // controls.dragToLook = false;
+  /////////////////////////////////////////////
 
 
   window.addEventListener('resize', handleWindowResize, false);
@@ -247,7 +256,8 @@ function createMoon(options){
   // integer greater than 50 + 2x the size of the moon but smaller than 4x the size of the moon
   // 50 is the default size for planets, then add 2x the radius so that there is some distance
   // TODO: update to be dynamic for dynamic planet sizes
-  moon.mesh.position.y = 50 + getRandomInt((2*options.radius), (8*options.radius));
+  console.log('radius', options.radius);
+  moon.mesh.position.y = 50 + getRandomInt((3*options.radius), (8*options.radius));
 
   var pivot = new THREE.Object3D();
   pivot.rotation.z = 0;
@@ -269,8 +279,12 @@ function loop(){
     return;
   }
 
-  var delta = clock.getDelta();
-  controls.update(delta);
+  /////////////////////////////////////////////
+  // toggle fly camera
+  // var delta = clock.getDelta();
+  // controls.update(delta);
+  ////////////////////////////////////////
+
 
   var d = distanceToNearestMesh();
   // Slow down when we get closer than Config.closeness_threshhold to a body
