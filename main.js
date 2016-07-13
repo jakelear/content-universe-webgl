@@ -246,11 +246,6 @@ function createMoon(options){
 
   var moon = new Planet(options);
   moons.push(moon);
-  // Set the distance of the moon from the planet at a random
-  // integer greater than 50 + 2x the size of the moon but smaller than 4x the size of the moon
-  // 50 is the default size for planets, then add 2x the radius so that there is some distance
-  // TODO: update to be dynamic for dynamic planet sizes
-  moon.mesh.position.y = 50 + getRandomInt((3*options.radius), (8*options.radius));
 
   var pivot = new THREE.Object3D();
   pivot.rotation.z = 0;
@@ -404,9 +399,9 @@ function init(event){
       planet_counter++;
       var size = Math.round(story.pageviews / planet_ratio);
       var coordinates =  {
-        x: ((getRandom(site.radius * -1, site.radius * 1.5)) * (planet_counter)),
-        y: ((getRandom(site.radius * -1, site.radius * 2)) * (planet_counter)),
-        z: ((getRandom(site.radius * -1, site.radius * 1.5)) * (planet_counter))
+        x: ((getRandom(site.radius * -1, site.radius * 3.5)) * (planet_counter)),
+        y: ((getRandom(site.radius * -1, site.radius * 5.2)) * (planet_counter)),
+        z: ((getRandom(site.radius * -1, site.radius * 2.5)) * (planet_counter))
       }
 
       // Make sure the planet coordinate isn't inside the star
@@ -414,7 +409,7 @@ function init(event){
         coord < 0 ? coord -= site.radius : coord += site.radius;
       }
 
-      var planet = createPlanet({radius: size, coordinates: coordinates, color: Colors.blue, detail: 1, parent: Sites.polygon});
+      var planet = createPlanet({radius: size, coordinates: coordinates, color: pastelColors(), detail: 1, parent: Sites.polygon});
 
       var moon_sizes = [];
       story.social_posts.forEach(function(post) {
@@ -426,7 +421,7 @@ function init(event){
       // Should be no larger than 33% of the parent planet
       var max_moon_size = Math.max.apply(Math, moon_sizes);
       var moon_ratio = max_moon_size / (size / 3);
-
+      var moon_counter = 1;
       story.social_posts.forEach(function(post) {
         var moon_radius = (post.engagement * 1000) / moon_ratio;
         var color;
@@ -437,7 +432,20 @@ function init(event){
         } else {
           color = Colors.cream;
         }
-        createMoon({radius: moon_radius, color: color, detail: 0, parent: planet});
+
+        moon_counter++;
+        var moon_coordinates =  {
+          x: ((getRandom(size * -1, size * 1.5)) * (moon_counter)),
+          y: ((getRandom(size * -1, size * 2)) * (moon_counter)),
+          z: ((getRandom(size * -1, size * 1.5)) * (moon_counter))
+        };
+
+        // Make sure the planet coordinate isn't inside the star
+        for (var coord in moon_coordinates) {
+          coord <= 0 ? coord -= size : coord += size;
+        }
+
+        var moon = createMoon({radius: moon_radius, coordinates: moon_coordinates, color: color, detail: 0, parent: planet});
       });
     });
   }
@@ -471,6 +479,14 @@ function getRandomInt(min, max) {
 function getRandom(min, max) {
   return Math.random() * (max - min) + min;
 }
+
+function pastelColors(){
+    var r = (Math.round(Math.random()* 127) + 127).toString(16);
+    var g = (Math.round(Math.random()* 127) + 127).toString(16);
+    var b = (Math.round(Math.random()* 127) + 127).toString(16);
+    return '#' + r + g + b;
+}
+
 
 // Dataset
 
