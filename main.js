@@ -6,7 +6,6 @@
 
 var Config = {
   selector: 'visualization',
-  camera_spawn_position: {x: 0, y: 0, z: 500},
   camera_base_speed: 10000,
   fov: 60,
   near_plane: 1,
@@ -87,7 +86,7 @@ function createScene() {
 
   //scene.fog = new THREE.Fog(Colors.cream, 10000,55000);
   scene.fog = new THREE.FogExp2( 0x000000, 0.00000025 );
-  camera.position = Config.camera_spawn_position;
+  camera.position.setZ(50000);
 
    // Set up WebGL Renderer
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -269,13 +268,13 @@ function distanceToNearestMesh() {
 
 // Main render loop - updates every animation frame tick
 function loop(){
-  if ( pause ) {
-    return;
-  }
-
   if (control_type == 'fly') {
     var delta = clock.getDelta();
     controls.update(delta);
+  }
+
+  if ( pause ) {
+    return;
   }
 
   var d = distanceToNearestMesh();

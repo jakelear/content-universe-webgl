@@ -8,11 +8,15 @@
 </div>
 
 <div class="controls">
-  <a class="control-btn" data-control-type="fly">Fly</a>
-  <a class="control-btn active" data-control-type="orbital">Orbit</a>
+  <a class="btn control-btn" data-control-type="fly">Fly</a>
+  <a class="btn control-btn active" data-control-type="orbital">Orbit</a>
+  <a class="btn" id="reset-btn">Reset</a>
 </div>
 
 <script>
+  $('#reset-btn').on('click', function(e){
+    reset();
+  });
   $('.control-btn').on('click', function(e){
     changeControlType(this.getAttribute('data-control-type'));
     $('.control-btn').removeClass('active');
@@ -81,7 +85,7 @@
 
   }
 
-  .control-btn {
+  .btn {
     display: inline-block;
     padding: 10px;
     margin: 10px 10px 0 0;
@@ -96,7 +100,7 @@
     cursor: pointer;
   }
 
-  .control-btn.active {
+  .btn.active {
     cursor: default;
     color: #fff;
     border-color: #FFF;
